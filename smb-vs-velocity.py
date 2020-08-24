@@ -6,16 +6,6 @@ import calendar
 import matplotlib.pyplot as plt
 import pyproj as pyproj
 from scipy import interpolate
-import scipy.signal as ss
-
-def ccf(x, y, lag_max = 100):
-
-    result = ss.correlate(y - np.mean(y), x - np.mean(x), method='direct') / (np.std(y) * np.std(x) * len(y))
-    length = (len(result) - 1) // 2
-    lo = length - lag_max
-    hi = length + (lag_max + 1)
-
-    return result[lo:hi]
 
 
 ##Load in HIRHAM
@@ -65,10 +55,13 @@ plt.show()
 smb_d = [d.utctimetuple() for d in smb_dates]
 dates_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
 smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
-coincident_smb = smb_series_func(hel_stack.tdec)
+coincident_dates = t_grid[t_grid<=max(dates_interp)]
+coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
 fig, ax = plt.subplots(1)
-ax.plot(hel_stack.tdec, coincident_smb)
+ax.plot(dates_grid[t_grid<=max(dates_interp)], coincident_smb)
 plt.show()
 
-## Compute cross-correlation - series[i] from helheim-tseries
-crosscorr = ccf(smb_series_func, series[0])
+## Compute cross-correlation with smooth preds[i] from helheim-tseries
+fig, ax1 = plt.subplots(1)
+ax1.xcorr(coincident_smb, preds[0]['full'][t_grid<=max(dates_interp)], usevlines=True, maxlags=50, normed=True, lw=2)
+ax1.grid(True)
