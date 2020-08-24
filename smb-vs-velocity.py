@@ -63,5 +63,6 @@ plt.show()
 
 ## Compute cross-correlation with smooth preds[i] from helheim-tseries
 fig, ax1 = plt.subplots(1)
-ax1.xcorr(coincident_smb, preds[0]['full'][t_grid<=max(dates_interp)], usevlines=True, maxlags=50, normed=True, lw=2)
+lags, c, _, _ = ax1.xcorr(coincident_smb, preds[0]['full'][t_grid<=max(dates_interp)], usevlines=False, maxlags=200, normed=True, lw=2)
 ax1.grid(True)
+ax1.set(ylabel='Cross-correlation', xlabel='Lag [unit displacement of 3 days]')
