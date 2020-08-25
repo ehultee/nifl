@@ -6,6 +6,7 @@ import calendar
 import matplotlib.pyplot as plt
 import pyproj as pyproj
 from scipy import interpolate
+import iceutils as ice
 
 
 ##Load in HIRHAM
@@ -35,11 +36,11 @@ time_indices = range(311, 444) # go from Jan 2006 to Dec 2016 in monthly series
 # time_indices = range(25, 34) # go from 2006-2014 in yearly series
 smb_dates = pd.date_range(start='2006-01-01', end='2016-12-31', periods=len(time_indices))
 for t,d in zip(time_indices, smb_dates):
-    smb_t = smb_raw[t][0][yt1:yb1, xl1:xr1]
+    smb_t = smb_raw[t][0][::-1, ::][yt1:yb1, xl1:xr1]
     regridded_smb_t = interpolate.griddata((xs.ravel(), ys.ravel()), smb_t.ravel(), (Xmat, Ymat), method='nearest')
     SMB_dict[d] = interpolate.interp2d(x_hel, y_hel, regridded_smb_t, kind='linear')   
     
-## Plot SMB time series at points
+## Pull SMB time series at point coincident with velocity pull
 xy_1 = (308103., -2577200.) #polar stereo coordinates of a point near Helheim 2009 terminus, in m
 xy_2 = (302026., -2566770.) # point up on North branch
 xy_3 = (297341., -2571490.) # point upstream on main branch
@@ -50,16 +51,15 @@ fig, ax = plt.subplots(1)
 ax.plot(smb_dates, smb_series)
 plt.show()
 
-
 ## Now interpolate time series and pull values coincident with satellite shots
 smb_d = [d.utctimetuple() for d in smb_dates]
 dates_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
 smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
 coincident_dates = t_grid[t_grid<=max(dates_interp)]
 coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
-fig, ax = plt.subplots(1)
-ax.plot(dates_grid[t_grid<=max(dates_interp)], coincident_smb)
-plt.show()
+# fig, ax = plt.subplots(1)
+# ax.plot(dates_grid[t_grid<=max(dates_interp)], coincident_smb)
+# plt.show()
 
 ## Compute cross-correlation with smooth preds[i] from helheim-tseries
 fig, ax1 = plt.subplots(1)
