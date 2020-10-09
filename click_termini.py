@@ -18,12 +18,13 @@ fpath='/Users/lizz/Documents/GitHub/Data_unsynced/Gld-Stack/'
 hel_stack = ice.MagStack(files=[fpath+'vx.h5', fpath+'vy.h5'])
 data_key = 'igram' # B. Riel convention for access to datasets in hdf5 stack
 
-with open('/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-selected_fronts.csv', 'w', newline='') as csvfile:
+fn = '/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-selected_fronts.csv'
+with open(fn, 'a', newline='') as csvfile:
     fieldnames = ['Time', 'Front_points']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
+    # writer.writeheader()
 
-    for i in range(series[0]): # slice for each available point in timeseries
+    for i in range(175,187): # slice for each available point in timeseries
         s = hel_stack.slice(index=i, key=data_key)
         t = hel_stack.tdec[i]
         
@@ -31,11 +32,11 @@ with open('/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-selected_fronts.cs
         fig, ax = plt.subplots()
         ax.contourf(hel_stack.stacks[0]._datasets['x'], hel_stack.stacks[0]._datasets['y'], s, 50)
         ax.set(
-        	xlim=(292000, 320500), ylim=(-2581400, -2555000),
-        	xticks=[295000, 300000, 305000, 310000, 315000, 320000], 
-            xticklabels=['295', '300', '305', '310', '315', '320'], xlabel='Easting [km]',
-        	yticks=[-2580000, -2575000, -2570000, -2565000, -2560000, -2555000], 
-            yticklabels=['-2580', '-2575', '-2570', '-2565', '-2560', '-2555'], ylabel='Northing [km]',
+        	xlim=(298000, 315500), ylim=(-2581400, -2570000),
+        	xticks=[300000, 305000, 310000, 315000], 
+            xticklabels=['295', '300', '305', '310', '315'], xlabel='Easting [km]',
+        	yticks=[-2580000, -2575000, -2570000], 
+            yticklabels=['-2580', '-2575', '-2570'], ylabel='Northing [km]',
             aspect=1
         	)
         plt.tight_layout()
@@ -44,8 +45,9 @@ with open('/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-selected_fronts.cs
         ## Call ginput to get points
         pts = plt.ginput(n=-1, show_clicks=True)
         ## Write the selected points to CSV
-        writer.writerow({'time': t, 'Front_points': pts})
         plt.close()
+        writer.writerow({'Time': t, 'Front_points': pts})
+
 
 
 
