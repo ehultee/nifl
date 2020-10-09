@@ -41,31 +41,35 @@ for t,d in zip(time_indices, smb_dates):
     SMB_dict[d] = interpolate.interp2d(x_hel, y_hel, regridded_smb_t, kind='linear')   
     
 ## Pull SMB time series at point coincident with velocity pull
-xy_1 = (308103., -2577200.) #polar stereo coordinates of a point near Helheim 2009 terminus, in m
-xy_2 = (302026., -2566770.) # point up on North branch
-xy_3 = (297341., -2571490.) # point upstream on main branch
-xy_4 = (294809., -2577580.) # point on southern tributary
+# xy_1 = (308103., -2577200.) #polar stereo coordinates of a point near Helheim 2009 terminus, in m
+# xy_2 = (302026., -2566770.) # point up on North branch
+# xy_3 = (297341., -2571490.) # point upstream on main branch
+# xy_4 = (294809., -2577580.) # point on southern tributary
 
-smb_series = [float(SMB_dict[d](xy_1[0],xy_1[1])) for d in smb_dates]
-fig, ax = plt.subplots(1)
-ax.plot(smb_dates, smb_series)
-plt.show()
+t_grid = np.linspace(hel_stack.tdec[0], hel_stack.tdec[-1], 1000)
 
-## Now interpolate time series and pull values coincident with satellite shots
-smb_d = [d.utctimetuple() for d in smb_dates]
-dates_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
-smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
-coincident_dates = t_grid[t_grid<=max(dates_interp)]
-coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
-# fig, ax = plt.subplots(1)
-# ax.plot(dates_grid[t_grid<=max(dates_interp)], coincident_smb)
-# plt.show()
-
-## Compute cross-correlation with smooth preds[i] from helheim-tseries
-fig, ax1 = plt.subplots(1)
-lags, c, _, _ = ax1.xcorr(coincident_smb, preds[0]['full'][t_grid<=max(dates_interp)], usevlines=False, maxlags=200, normed=True, lw=2)
-ci = [2/np.sqrt(len(coincident_smb)-abs(k)) for k in lags]
-ax1.plot(lags, ci, ls=':', color='k')
-ax1.plot(lags, -1*np.array(ci), ls=':', color='k')
-ax1.grid(True)
-ax1.set(ylabel='Cross-correlation', xlabel='Lag [unit displacement of 3 days]')
+for j, pt in enumerate(xys):
+    smb_series = [float(SMB_dict[d](pt[0],pt[1])) for d in smb_dates]
+    fig, ax = plt.subplots(1)
+    ax.plot(smb_dates, smb_series)
+    plt.title('Point {}, {} km up glacier'.format(j, 0.001*a[100*j]))
+    plt.show()
+    
+    ## Now interpolate time series and pull values coincident with satellite shots
+    smb_d = [d.utctimetuple() for d in smb_dates]
+    dates_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
+    smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
+    coincident_dates = t_grid[t_grid<=max(dates_interp)]
+    coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
+    # fig, ax = plt.subplots(1)
+    # ax.plot(dates_grid[t_grid<=max(dates_interp)], coincident_smb)
+    # plt.show()
+    
+    ## Compute cross-correlation with smooth preds[i] from helheim-tseries
+    fig, ax1 = plt.subplots(1)
+    lags, c, _, _ = ax1.xcorr(coincident_smb, preds[j]['full'][t_grid<=max(dates_interp)], usevlines=False, maxlags=200, normed=True, lw=2)
+    ci = [2/np.sqrt(len(coincident_smb)-abs(k)) for k in lags]
+    ax1.plot(lags, ci, ls=':', color='k')
+    ax1.plot(lags, -1*np.array(ci), ls=':', color='k')
+    ax1.grid(True)
+    ax1.set(ylabel='Cross-correlation', xlabel='Lag [unit displacement of 3 days]')
