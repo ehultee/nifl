@@ -229,7 +229,7 @@ def VSeriesAtPoint(pt, vel_stack, collection, model, model_pred, solver, t_grid,
         Model prediction for this point. Keys are 'full', 'seasonal', 'transient', 'secular', 'step'
     short_term : ndarray
         Series with long-term signals removed
-    long-term : ndarray
+    long_term : ndarray
         Series with short-term signals removed
 
     """
@@ -255,7 +255,8 @@ def VSeriesAtPoint(pt, vel_stack, collection, model, model_pred, solver, t_grid,
 
     # Remove short-term signals from data
     series_long_term = series - np.interp(vel_stack.tdec, t_grid, short_term)
-
+    
+    return pred, series_short_term, series_long_term
     
 
 def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
