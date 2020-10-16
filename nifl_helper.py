@@ -4,8 +4,11 @@
 ## Pull given dataset at these points
 ## Export a point time series to CSV
 from math import sqrt
+from scipy import interpolate
 import collections
 import numpy as np
+import iceutils as ice
+
 
 
 def Flowline_CSV(filename, has_width=False, flip_order=False):
@@ -193,4 +196,115 @@ def computeCm(collection, b_spl_sigma=0.5):
 
     return block_diag(C_sec, C_bspl, C_ispl)
 
+
+def VSeriesAtPoint(pt, vel_stack, collection, model, model_pred, solver, t_grid,
+                   sigma=1.5, data_key='igram'):
+    """
+    Invert for a continuous 1D velocity series at a given point
+
+    Parameters
+    ----------
+    pt : tuple
+        Position (x,y) at which to pull series.
+    vel_stack : ice.MagStack
+        Stack of 2D velocity fields including this point.
+    collection : ice.tseries TimefnCollection
+        Basis functions for the tseries dates in vel_stack
+    model : ice.tseries.model.Model
+        Model instance for inversion
+    model_pred : ice.tseries.model.Model
+        Model instance for prediction - evenly spaced dates
+    solver : ice.tseries solver
+        Instance of solver that will do the inversion.  LassoRegression has worked well.
+    t_grid : ndarray
+        Evenly spaced decimal times at which to sample spline-fit velocity
+    sigma : float, optional
+        B-spline sigma for a priori covariance at this point. The default is 1.5.
+    data_key : str, optional
+        Convention for accessing HDF5 data. The default is 'igram' (per B. Riel).
+
+    Returns
+    -------
+    pred : dict
+        Model prediction for this point. Keys are 'full', 'seasonal', 'transient', 'secular', 'step'
+    short_term : ndarray
+        Series with long-term signals removed
+    long-term : ndarray
+        Series with short-term signals removed
+
+    """
+    series = vel_stack.timeseries(xy=pt, key=data_key)
     
+    # Construct a priori covariance
+    Cm = computeCm(collection, b_spl_sigma=sigma)
+    solver.regMat = np.linalg.inv(Cm)
+    
+    # Perform inversion to get coefficient vector and coefficient covariance matrix
+    status, m, Cm = solver.invert(model.G, series) # fit near-terminus (series[0]) first
+    assert status == ice.SUCCESS, 'Failed inversion'
+    
+    # Model will perform predictions
+    pred = model_pred.predict(m)
+
+    # Separate out seasonal (short-term) and secular + transient (long-term) signals
+    short_term = pred['seasonal']
+    long_term = pred['secular'] + pred['transient']
+
+    # Remove long-term signals from data
+    series_short_term = series - np.interp(vel_stack.tdec, t_grid, long_term)
+
+    # Remove short-term signals from data
+    series_long_term = series - np.interp(vel_stack.tdec, t_grid, short_term)
+
+    
+
+def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
+    """
+    Compute cross-correlation on coincident series of SMB, velocity.
+
+    Parameters
+    ----------
+    pt : tuple
+        Position (x,y) at which to pull series.
+    smb_dictionary : dict
+        SMB field by date. Keys should be same format as smb_dates
+    smb_dates : pandas DatetimeIndex
+        Dates of SMB time slices
+    velocity_series : dict
+        Output of iceutils prediction.
+    t_grid : ndarray
+        Evenly spaced decimal times at which spline-fit velocity is sampled
+
+    Returns
+    -------
+    corr : array
+        Cross-correlation coefficients between SMB, velocity
+    lags : array
+        Time lag for each correlation value
+    ci : array
+        Confidence intervals for evaluation
+
+    """
+    smb_series = [float(smb_dictionary[d](pt[0],pt[1])) for d in smb_dates]
+    
+    ## Now interpolate time series and pull values coincident with satellite shots
+    smb_d = [d.utctimetuple() for d in smb_dates]
+    dates_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
+    smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
+    coincident_dates = t_grid[t_grid<=max(dates_interp)]
+    coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
+    smb_diff = np.diff(coincident_smb)
+    vel_series = velocity_pred['full'][t_grid<=max(dates_interp)]
+    vel_diff = np.diff(vel_series)
+
+    if diff==0:
+            corr = np.correlate(coincident_smb, vel_series, mode='full')
+    elif diff==1:
+            corr = np.correlate(smb_diff, vel_diff, mode='full')
+    lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
+    ci = [2/np.sqrt(len(coincident_smb)-abs(k)) for k in lags]
+
+    ## convert lags to physical units
+    lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
+    
+    return corr, lags, ci
