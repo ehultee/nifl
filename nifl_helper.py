@@ -318,3 +318,57 @@ def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1, norma
     
     return corr, lags, ci
 
+def RunoffXcorr(pt, runoff_func, runoff_dates, velocity_pred, t_grid, diff=1, normalize=True):
+    """
+    Compute cross-correlation on coincident series of catchment-integrated runoff
+    and velocity at a point.
+
+    Parameters
+    ----------
+    pt : tuple
+        Position (x,y) at which to pull velocity series.
+    runoff_func : interpolate.interp1d
+        1D-interpolated function with values of catchment-integrated runoff over time.
+    runoff_dates : list
+        Decimal dates of runoff data points
+    velocity_series : dict
+        Output of iceutils prediction.
+    t_grid : ndarray
+        Evenly spaced decimal times at which spline-fit velocity is sampled
+    diff : int, optional
+        Number of discrete differences to apply to data. Default is 1.
+        Setting diff=0 will process the input data as-is.
+    normalize : bool, optional
+        Whether to normalize for a cross-correlation in [-1,1]. Default is True.
+        This makes the output inter-comparable with normalized output for other
+        variables.  If set to False, the signal amplitude will be larger but
+        the correlation values may exceed 1.
+
+    Returns
+    -------
+    corr : array
+        Cross-correlation coefficients between SMB, velocity
+    lags : array
+        Time lag for each correlation value
+    ci : array
+        Confidence intervals for evaluation
+
+    """
+    coincident_dates = t_grid[t_grid<=max(runoff_dates)]
+    coincident_runoff = runoff_func(coincident_dates) # sample at same dates as velocity series
+    
+    runoff_diff = np.diff(coincident_runoff, n=diff)
+    vel_series = velocity_pred['full'][t_grid<=max(runoff_dates)]
+    vel_diff = np.diff(vel_series, n=diff)
+    if normalize:
+        runoff_diff = (runoff_diff-np.mean(runoff_diff)) / (np.std(runoff_diff)*len(runoff_diff))
+        vel_diff = (vel_diff-np.mean(vel_diff)) / (np.std(vel_diff))
+    corr = np.correlate(runoff_diff, vel_diff, mode='full')
+    lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
+    ci = [2/np.sqrt(len(coincident_runoff)-abs(k)) for k in lags]
+
+    ## convert lags to physical units
+    lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
+    
+    return corr, lags, ci
+    
