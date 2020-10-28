@@ -259,7 +259,7 @@ def VSeriesAtPoint(pt, vel_stack, collection, model, model_pred, solver, t_grid,
     return pred, series_short_term, series_long_term
     
 
-def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
+def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1, normalize=True):
     """
     Compute cross-correlation on coincident series of SMB, velocity.
 
@@ -275,6 +275,14 @@ def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
         Output of iceutils prediction.
     t_grid : ndarray
         Evenly spaced decimal times at which spline-fit velocity is sampled
+    diff : int, optional
+        Number of discrete differences to apply to data. Default is 1.
+        Setting diff=0 will process the input data as-is.
+    normalize : bool, optional
+        Whether to normalize for a cross-correlation in [-1,1]. Default is True.
+        This makes the output inter-comparable with normalized output for other
+        variables.  If set to False, the signal amplitude will be larger but
+        the correlation values may exceed 1.
 
     Returns
     -------
@@ -294,14 +302,14 @@ def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
     smb_series_func = interpolate.interp1d(dates_interp, smb_series, bounds_error=False)
     coincident_dates = t_grid[t_grid<=max(dates_interp)]
     coincident_smb = smb_series_func(coincident_dates) # sample at same dates as helheim-tseries_decomp
-    smb_diff = np.diff(coincident_smb)
     vel_series = velocity_pred['full'][t_grid<=max(dates_interp)]
-    vel_diff = np.diff(vel_series)
 
-    if diff==0:
-            corr = np.correlate(coincident_smb, vel_series, mode='full')
-    elif diff==1:
-            corr = np.correlate(smb_diff, vel_diff, mode='full')
+    smb_diff = np.diff(coincident_smb, n=diff)
+    vel_diff = np.diff(vel_series, n=diff)
+    if normalize:
+        smb_diff = (smb_diff - np.mean(smb_diff)) / (np.std(smb_diff)*len(smb_diff))
+        vel_diff = (vel_diff - np.mean(vel_diff)) / (np.std(vel_diff))
+    corr = np.correlate(smb_diff, vel_diff, mode='full')
     lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
     ci = [2/np.sqrt(len(coincident_smb)-abs(k)) for k in lags]
 
@@ -309,3 +317,4 @@ def SmbXcorr(pt, smb_dictionary, smb_dates, velocity_pred, t_grid, diff=1):
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
     
     return corr, lags, ci
+
