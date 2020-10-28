@@ -36,7 +36,7 @@ bb = b_raw #don't mask, to allow bed sampling from modern bathymetry (was subgla
 fh.close()
 
 ## Interpolate in area of Helheim
-xl, xr = 6100, 6400
+xl, xr = 6100, 6600
 yt, yb = 12700, 13100
 x_hel = xx[xl:xr]
 y_hel = yy[yt:yb]

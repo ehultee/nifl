@@ -81,9 +81,13 @@ for xy in xys:
     lag_max.append(lags[np.argmax(corr)])
 
 fig, ax = plt.subplots(1)
-ax.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=corr_max)
+ax.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+sc = ax.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=corr_max)
+fig.colorbar(sc, ax=ax)
 plt.show()
 
 fig1, ax1 = plt.subplots(1)
-ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=lag_max, cmap='plasma')
+ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=lag_max, cmap='plasma')
+fig1.colorbar(sc1, ax=ax1)
 plt.show()
