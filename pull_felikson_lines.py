@@ -11,6 +11,7 @@ from netCDF4 import Dataset
 import numpy as np
 import matplotlib.pyplot as plt
 import iceutils as ice
+import nifl_helper as nifl
 
 ## Pull single flowline from Denis Felikson
 fp1 = '/Users/lizz/Documents/GitHub/Data_unsynced/Felikson-flowlines/netcdfs/glaciera199.nc'
@@ -48,10 +49,10 @@ dates = ice.tdec2datestr(hel_stack.tdec, returndate=True)
 dates_grid = ice.tdec2datestr(t_grid, returndate=True)
 
 # Build the collection
-collection = build_collection(dates)
+collection = nifl.build_collection(dates)
 
 # Construct a priori covariance
-Cm = computeCm(collection)
+Cm = nifl.computeCm(collection)
 iCm = np.linalg.inv(Cm)
 
 # Instantiate a model for inversion
@@ -72,10 +73,12 @@ solver = ice.tseries.select_solver('lasso', reg_indices=model.itransient, penalt
 corr_max = []
 lag_max = []
 for xy in xys:
-    pred, st, lt = VSeriesAtPoint(xy, vel_stack=hel_stack, collection=collection, 
+    pred, st, lt = nifl.VSeriesAtPoint(xy, vel_stack=hel_stack, collection=collection, 
                                   model=model, model_pred=model_pred, solver=solver, 
                                   t_grid=t_grid, sigma=1.5, data_key='igram')
-    corr, lags, ci = SmbXcorr(xy, smb_dictionary=SMB_dict, smb_dates=smb_dates, 
+    # corr, lags, ci = SmbXcorr(xy, smb_dictionary=SMB_dict, smb_dates=smb_dates, 
+                              # velocity_pred=pred, t_grid=t_grid, diff=1)
+    corr, lags, ci = nifl.RunoffXcorr(xy, runoff_func=runoff_func, runoff_dates=d_interp, 
                               velocity_pred=pred, t_grid=t_grid, diff=1)
     corr_max.append(max(corr))
     lag_max.append(lags[np.argmax(corr)])

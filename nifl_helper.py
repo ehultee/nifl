@@ -6,6 +6,7 @@
 from math import sqrt
 from scipy import interpolate
 import collections
+import datetime
 import numpy as np
 import iceutils as ice
 

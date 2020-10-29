@@ -7,6 +7,8 @@ Created on Tue Oct 20 08:22:25 2020
 @author: lizz
 """
 import pandas as pd
+from scipy import interpolate
+import numpy as np
  
 fn = '/Users/lizz/Desktop/RACMO2_3p2_Helheimgletscher_runoff_1958-2017.csv'
 runoff = np.loadtxt(fn, delimiter=',')
