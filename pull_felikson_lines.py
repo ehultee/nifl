@@ -72,25 +72,27 @@ solver = ice.tseries.select_solver('lasso', reg_indices=model.itransient, penalt
 
 corr_max = []
 lag_max = []
+preds = []
 for xy in xys:
     pred, st, lt = nifl.VSeriesAtPoint(xy, vel_stack=hel_stack, collection=collection, 
                                   model=model, model_pred=model_pred, solver=solver, 
                                   t_grid=t_grid, sigma=1.5, data_key='igram')
-    # corr, lags, ci = SmbXcorr(xy, smb_dictionary=SMB_dict, smb_dates=smb_dates, 
-                              # velocity_pred=pred, t_grid=t_grid, diff=1)
-    corr, lags, ci = nifl.RunoffXcorr(xy, runoff_func=runoff_func, runoff_dates=d_interp, 
-                              velocity_pred=pred, t_grid=t_grid, diff=1)
-    corr_max.append(max(corr))
-    lag_max.append(lags[np.argmax(corr)])
+    # corr, lags, ci = nifl.SmbXcorr(xy, smb_dictionary=SMB_dict, smb_dates=smb_dates, 
+    #                            velocity_pred=pred, t_grid=t_grid, diff=1)
+    # corr, lags, ci = nifl.RunoffXcorr(xy, runoff_func=runoff_func, runoff_dates=d_interp, 
+    #                           velocity_pred=pred, t_grid=t_grid, diff=1)
+    # corr_max.append(max(corr))
+    # lag_max.append(lags[np.argmax(corr)])
+    preds.append(pred)
 
-fig, ax = plt.subplots(1)
-ax.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
-sc = ax.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=corr_max)
-fig.colorbar(sc, ax=ax)
-plt.show()
+# fig, ax = plt.subplots(1)
+# ax.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# sc = ax.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=corr_max)
+# fig.colorbar(sc, ax=ax)
+# plt.show()
 
-fig1, ax1 = plt.subplots(1)
-ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
-sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=lag_max, cmap='plasma')
-fig1.colorbar(sc1, ax=ax1)
-plt.show()
+# fig1, ax1 = plt.subplots(1)
+# ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=lag_max, cmap='plasma')
+# fig1.colorbar(sc1, ax=ax1)
+# plt.show()

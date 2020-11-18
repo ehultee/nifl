@@ -10,7 +10,7 @@ import pandas as pd
 from scipy import interpolate
 import numpy as np
  
-fn = '/Users/lizz/Desktop/RACMO2_3p2_Helheimgletscher_runoff_1958-2017.csv'
+fn = '/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-processed/RACMO2_3p2_Helheimgletscher_runoff_1958-2017.csv'
 runoff = np.loadtxt(fn, delimiter=',')
 rnf = runoff[runoff[:,0]>=2006]
 rf = rnf[rnf[:,0]<=2016]
