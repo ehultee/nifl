@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Catchment-integrate SMB over Mankoff catchment
-Uses packages in nifl-process environment -- shapely and pyshp
+Uses packages in nifl-process environment -- shapely and pyshp (shapefile)
 
 Created on Wed Nov 11 17:33:09 2020
 
@@ -24,7 +24,7 @@ catchment_fn = '/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-processed/cat
 sf = shapefile.Reader(catchment_fn) 
 outline = sf.shapes()[0]
 
-## Aid interpolation with BedMachine background
+## Aid reprojection with BedMachine background
 gl_bed_path ='/Users/lizz/Documents/GitHub/Data_unsynced/BedMachine-Greenland/BedMachineGreenland-2017-09-20.nc'
 fh = Dataset(gl_bed_path, mode='r')
 xx = fh.variables['x'][:].copy() #x-coord (polar stereo (70, 45))
