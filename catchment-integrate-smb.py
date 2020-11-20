@@ -87,7 +87,7 @@ fn_out = '/Users/lizz/Documents/GitHub/Data_unsynced/Helheim-processed/HIRHAM_in
 with open(fn_out, 'a', newline='') as csvfile:
     fieldnames = ['Date', 'SMB_int']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    
+    writer.writeheader()
     for d, s in zip(smb_dates, catchment_sum):
         writer.writerow({'Date': d, 'SMB_int': s})
     
