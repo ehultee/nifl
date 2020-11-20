@@ -372,4 +372,63 @@ def RunoffXcorr(pt, runoff_func, runoff_dates, velocity_pred, t_grid, diff=1, no
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
     
     return corr, lags, ci
+
+def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff=1, normalize=True):
+    """
+    Compute cross-correlation on coincident series of a 1D time series
+    (e.g. catchment-integrated runoff or SMB) versus velocity at a point.
+
+    Parameters
+    ----------
+    pt : tuple
+        Position (x,y) at which to pull velocity series.
+    series_func : interpolate.interp1d
+        1D-interpolated function with values of data series over time.
+    series_dates : list
+        Decimal dates of data points
+    velocity_series : dict
+        Output of iceutils prediction.
+    t_grid : ndarray
+        Evenly spaced decimal times at which spline-fit velocity is sampled
+    t_limits : tuple
+        Start and end dates (decimal) of the time period to study
+    diff : int, optional
+        Number of discrete differences to apply to data. Default is 1.
+        Setting diff=0 will process the input data as-is.
+    normalize : bool, optional
+        Whether to normalize for a cross-correlation in [-1,1]. Default is True.
+        This makes the output inter-comparable with normalized output for other
+        variables.  If set to False, the signal amplitude will be larger but
+        the correlation values may exceed 1.
+
+    Returns
+    -------
+    corr : array
+        Cross-correlation coefficients between SMB, velocity
+    lags : array
+        Time lag for each correlation value
+    ci : array
+        Confidence intervals for evaluation
+
+    """
+    t_min = max(min(series_dates), t_limits[0])
+    t_max = min(max(series_dates), t_limits[1])
+    coincident_dates = np.asarray([t for t in t_grid if (t>=t_min and t<t_max)])
+    coincident_series = series_func(coincident_dates) # sample at same dates as velocity series
+    
+    series_diff = np.diff(coincident_series, n=diff)
+    vel_series_0 = velocity_pred['full'][np.where(t_grid>=t_min)]
+    vel_series = vel_series_0[np.where(t_grid[np.where(t_grid>=t_min)]<t_max)] # trim dates to match t_limits
+    vel_diff = np.diff(vel_series, n=diff)
+    if normalize:
+        series_diff = (series_diff-np.mean(series_diff)) / (np.std(series_diff)*len(series_diff))
+        vel_diff = (vel_diff-np.mean(vel_diff)) / (np.std(vel_diff))
+    corr = np.correlate(series_diff, vel_diff, mode='full')
+    lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
+    ci = [2/np.sqrt(len(coincident_series)-abs(k)) for k in lags]
+
+    ## convert lags to physical units
+    lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
+    
+    return corr, lags, ci
     
