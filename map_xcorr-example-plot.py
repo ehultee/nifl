@@ -310,6 +310,42 @@ ax3.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Terminus position')
-# plt.subplots_adjust(right=2.5)
 plt.tight_layout()
-plt.savefig('/Users/lizz/Desktop/20201218-map_xcorr_amax.png')
+# plt.savefig('/Users/lizz/Desktop/20201218-map_xcorr_amax.png')
+
+# In[ ]:
+## Plot spatial pattern of lag at the absolute max xcorr
+
+div_colors = 'RdBu' # choose divergent colormap
+lagnorm_min, lagnorm_max = -365, 365
+
+fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3, figsize=(14, 4))
+ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=smb_lag_amax, cmap=div_colors,
+                  vmin=lagnorm_min, vmax=lagnorm_max)
+cb1 = fig.colorbar(sc1, ax=ax1)
+# cb1.ax.set_title('Lag [d] at peak xcorr')
+ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
+      ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
+       xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
+      xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment SMB')
+ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=runoff_lag_amax, cmap=div_colors,
+                  vmin=lagnorm_min, vmax=lagnorm_max)
+cb2 = fig.colorbar(sc2, ax=ax2)
+# cb2.ax.set_title('Lag [d] at peak xcorr')
+ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
+      ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
+       xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
+      xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment runoff')
+ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+sc3 = ax3.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_lag_amax, cmap=div_colors,
+                  vmin=lagnorm_min, vmax=lagnorm_max)
+cb3 = fig.colorbar(sc3, ax=ax3)
+cb3.ax.set_title('Lag [d] at peak xcorr')
+ax3.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
+      ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
+       xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
+      xlabel='Easting [km]', ylabel='Northing [km]', title='Terminus position')
+plt.tight_layout()
+plt.show()
