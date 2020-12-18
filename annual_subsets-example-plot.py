@@ -295,22 +295,37 @@ for i in range(len(date_chks)-1):
 # In[ ]:
 
 
-fig, axs = plt.subplots(len(rf_annual_corrs))
+fig, axs = plt.subplots(len(rf_annual_corrs), ncols=2, figsize=(4, 14), sharex=True)
 for j in range(len(rf_annual_corrs)):
-    axs[j].plot(rf_annual_lags[j], rf_annual_corrs[j])
-    axs[j].plot(rf_annual_lags[j], rf_annual_ci[j], ls=':', color='k')
-    axs[j].plot(rf_annual_lags[j], -1*np.array(rf_annual_ci[j]), ls=':', color='k')
-
-# for j in range(len(rf_annual_corrs)):
-#     fig, ax = plt.subplots(1)
-#     ax.axvline(x=0, ls='-', color='k', alpha=0.5)
-#     ax.axhline(y=0, ls='-', color='k', alpha=0.5)
-#     ax.plot(rf_annual_lags[j], rf_annual_corrs[j])
-#     ax.plot(rf_annual_lags[j], rf_annual_ci[j], ls=':', color='k')
-#     ax.plot(rf_annual_lags[j], -1*np.array(rf_annual_ci[j]), ls=':', color='k')
-#     ax.set(ylim=(-1,1), title='Xcorr runoff-vel, {}'.format(date_chks[j]), 
-#            xlabel='Lag [days]', ylabel='xcorr')
-
+    ax = axs[j][0]
+    ax.axvline(x=0, color='k', alpha=0.5)
+    ax.axhline(y=0, color='k', alpha=0.5)
+    ax.plot(rf_annual_lags[j], rf_annual_ci[j], ls=':', color='k')
+    ax.plot(rf_annual_lags[j], -1*np.array(rf_annual_ci[j]), ls=':', color='k')
+    ax.plot(rf_annual_lags[j], rf_annual_corrs[j])
+    ax.fill_between(rf_annual_lags[j], y1=rf_annual_corrs[j], y2=0, where=abs(rf_annual_corrs[j])>rf_annual_ci[j])
+    if j==0:
+        ax.set(title='Runoff', ylabel='xcorr')
+    elif j==len(axs)-1:
+        ax.set(xlabel='Lag [d]')
+    else:
+        continue
+for k in range(len(tm_annual_corrs)):
+    ax = axs[k][1]
+    ax.axvline(x=0, color='k', alpha=0.5)
+    ax.axhline(y=0, color='k', alpha=0.5)
+    ax.plot(tm_annual_lags[k], tm_annual_ci[k], ls=':', color='k')
+    ax.plot(tm_annual_lags[k], -1*np.array(tm_annual_ci[k]), ls=':', color='k')
+    ax.plot(tm_annual_lags[k], tm_annual_corrs[k])
+    ax.fill_between(tm_annual_lags[j], y1=tm_annual_corrs[j], y2=0, where=abs(tm_annual_corrs[j])>tm_annual_ci[j])
+    if k==0:
+        ax.set(title='Terminus pos.')
+    elif k==len(axs)-1:
+        ax.set(xlabel='Lag [d]')
+    else:
+        continue
+plt.tight_layout()
+plt.savefig('/Users/lizz/Desktop/20201218-annual_chunk_xcorr-sig_fill.png')
 
 
 
