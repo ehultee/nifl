@@ -15,6 +15,7 @@ import pyproj as pyproj
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import LightSource
 import iceutils as ice
 import nifl_helper as nifl
 
@@ -260,10 +261,13 @@ B_helheim = interpolate.RectBivariateSpline(x_hel, y_hel[::-1], b_hel.T[::,::-1]
 # First, we plot the max correlation at each point for a single variable.
 
 # In[ ]:
-
+ls = LightSource(azdeg=225, altdeg=80)
 
 fig, ax = plt.subplots(1)
-ax.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+rgb = ls.shade(np.asarray(b_hel), cmap=plt.get_cmap('gist_earth'), blend_mode='overlay',
+               dx=np.mean(np.diff(x_hel)), dy=np.mean(np.diff(y_hel)), vert_exag=5.)
+ax.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc = ax.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_corr_amax, cmap='RdBu', vmin=-0.5, vmax=0.5)
 cb = fig.colorbar(sc, ax=ax)
 cb.ax.set_title('Max. xcorr')
@@ -283,7 +287,8 @@ div_colors = 'RdBu' # choose divergent colormap
 corrnorm_min, corrnorm_max = -0.3, 0.3
 
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3, figsize=(14, 4))
-ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax1.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=smb_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
 cb1 = fig.colorbar(sc1, ax=ax1)
@@ -292,7 +297,8 @@ ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment SMB')
-ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax2.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=runoff_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
 cb2 = fig.colorbar(sc2, ax=ax2)
@@ -301,7 +307,8 @@ ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment-integrated runoff')
-ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax3.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc3 = ax3.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
 cb3 = fig.colorbar(sc3, ax=ax3)
@@ -320,7 +327,8 @@ div_colors = 'RdBu' # choose divergent colormap
 lagnorm_min, lagnorm_max = -365, 365
 
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3, figsize=(14, 4))
-ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax1.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax1.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=smb_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
 cb1 = fig.colorbar(sc1, ax=ax1)
@@ -329,7 +337,8 @@ ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment SMB')
-ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax2.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=runoff_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
 cb2 = fig.colorbar(sc2, ax=ax2)
@@ -338,7 +347,8 @@ ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment runoff')
-ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+# ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
+ax3.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc3 = ax3.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
 cb3 = fig.colorbar(sc3, ax=ax3)
