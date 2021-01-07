@@ -263,7 +263,7 @@ rf_annual_lags = []
 rf_annual_ci = []
 
 point_to_plot =5
-date_chks = range(2009, 2017)
+date_chks = range(2009, 2018)
 for i in range(len(date_chks)-1):
     corr, lags, ci = nifl.Xcorr1D(xys[point_to_plot], series_func=runoff_func, series_dates=d_interp, 
                               velocity_pred=preds[point_to_plot], t_grid=t_grid, t_limits=(date_chks[i], date_chks[i+1]),
@@ -280,7 +280,7 @@ tm_annual_lags = []
 tm_annual_ci = []
 
 point_to_plot =5
-date_chks = range(2009, 2017)
+date_chks = range(2009, 2018)
 for i in range(len(date_chks)-1):
     corr, lags, ci = nifl.Xcorr1D(xys[point_to_plot], series_func=termini_func, series_dates=tm_d_interp, 
                               velocity_pred=preds[point_to_plot], t_grid=t_grid, t_limits=(date_chks[i], date_chks[i+1]),
@@ -317,7 +317,7 @@ for k in range(len(tm_annual_corrs)):
     ax.plot(tm_annual_lags[k], tm_annual_ci[k], ls=':', color='k')
     ax.plot(tm_annual_lags[k], -1*np.array(tm_annual_ci[k]), ls=':', color='k')
     ax.plot(tm_annual_lags[k], tm_annual_corrs[k])
-    ax.fill_between(tm_annual_lags[j], y1=tm_annual_corrs[j], y2=0, where=abs(tm_annual_corrs[j])>tm_annual_ci[j])
+    ax.fill_between(tm_annual_lags[k], y1=tm_annual_corrs[k], y2=0, where=abs(tm_annual_corrs[k])>tm_annual_ci[k])
     if k==0:
         ax.set(title='Terminus pos.')
     elif k==len(axs)-1:
@@ -325,7 +325,7 @@ for k in range(len(tm_annual_corrs)):
     else:
         continue
 plt.tight_layout()
-plt.savefig('/Users/lizz/Desktop/20201218-annual_chunk_xcorr-sig_fill.png')
+plt.savefig('/Users/lizz/Desktop/20210106-annual_chunk_xcorr-sig_fill.png')
 
 
 

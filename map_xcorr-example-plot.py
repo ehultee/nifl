@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
+from mpl_toolkits.axes_grid1 import make_axes_locatable 
 import iceutils as ice
 import nifl_helper as nifl
 
@@ -50,7 +51,7 @@ ncfile.close()
 
 ## Define points at which to extract
 upstream_max = 500 # index of last xh,yh within given distance of terminus--pts roughly 50m apart
-xys = [(xh[i], yh[i]) for i in range(0, upstream_max, 25)]
+xys = [(xh[i], yh[i]) for i in range(0, upstream_max, 25)][1::]
 
 # ## Import and invert velocity observations
 
@@ -106,7 +107,7 @@ for j, xy in enumerate(xys):
     try:
         pred, st, lt = nifl.VSeriesAtPoint(xy, vel_stack=hel_stack, collection=collection, 
                                   model=model, model_pred=model_pred, solver=solver, 
-                                  t_grid=t_grid, sigma=1.5, data_key='igram')
+                                  t_grid=t_grid, sigma=2.5, data_key='igram')
         preds.append(pred)
     except AssertionError: # catches failed inversion
         print('Insufficient data for point {}. Removing'.format(j))
@@ -124,7 +125,10 @@ for j, xy in enumerate(xys):
 # In[ ]:
 
 
-smb = pd.read_csv(catchment_smb_fpath, parse_dates=[0])
+smb_full = pd.read_csv(catchment_smb_fpath, parse_dates=[0])
+smb_tr = smb_full.loc[smb_full['Date'].dt.year >= 2006]
+smb = smb_tr.loc[smb_tr['Date'].dt.year <2017]
+
 smb_d = [d.utctimetuple() for d in smb['Date']]
 smb_d_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in smb_d]
 smb_func = interpolate.interp1d(smb_d_interp, smb['SMB_int'])
@@ -168,9 +172,9 @@ print(lplag1)
 
 runoff = np.loadtxt(runoff_fpath, delimiter=',') 
 rnf = runoff[runoff[:,0]>=2006] # trim values from before the start of the velocity series
-rf = rnf[rnf[:,0]<=2016] #trim values after the end of the velocity series
+rf = rnf[rnf[:,0]<2017] #trim values after the end of the runoff series
 
-runoff_dates = pd.date_range(start='2006-01-01', end='2016-12-01', periods=len(rf))
+runoff_dates = pd.date_range(start='2006-01-01', end='2016-12-31', periods=len(rf))
 runoff_d = [d.utctimetuple() for d in runoff_dates]
 d_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in runoff_d]
 runoff_func = interpolate.interp1d(d_interp, rf[:,2])
@@ -200,7 +204,7 @@ for xy, pred in zip(xys, preds):
 termini = pd.read_csv(termini_fpath, parse_dates=True, usecols=[0,1])
 termini['date'] = pd.to_datetime(termini['date'])
 trmn = termini.loc[termini['date'].dt.year >= 2006]
-tm = trmn.loc[trmn['date'].dt.year <=2016]
+tm = trmn.loc[trmn['date'].dt.year <2017]
 
 termini_d = [d.utctimetuple() for d in tm['date']]
 tm_d_interp = [ice.timeutils.datestr2tdec(d[0], d[1], d[2]) for d in termini_d]
@@ -291,34 +295,45 @@ fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3, figsize=(14, 4))
 ax1.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=smb_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
-cb1 = fig.colorbar(sc1, ax=ax1)
+## set up correctly scaled colorbar
+div1 = make_axes_locatable(ax1)
+cax1 = div1.append_axes("right", size="5%", pad=0.1)
+plt.colorbar(sc1, cax=cax1)
 # cb1.ax.set_title('AMax. xcorr')
 ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment SMB')
+
 # ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
 ax2.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=runoff_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
-cb2 = fig.colorbar(sc2, ax=ax2)
+## set up correctly scaled colorbar
+div2 = make_axes_locatable(ax2)
+cax2 = div2.append_axes("right", size="5%", pad=0.1)
+fig.colorbar(sc2, cax=cax2)
 # cb2.ax.set_title('AMax. xcorr')
 ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment-integrated runoff')
+
 # ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
 ax3.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc3 = ax3.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_corr_amax, cmap=div_colors,
                  vmin=corrnorm_min, vmax=corrnorm_max)
-cb3 = fig.colorbar(sc3, ax=ax3)
+## set up correctly scaled colorbar
+div3 = make_axes_locatable(ax3)
+cax3 = div3.append_axes("right", size="5%", pad=0.1)
+cb3 = fig.colorbar(sc3, cax=cax3)
 cb3.ax.set_title('AMax. xcorr')
 ax3.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Terminus position')
 plt.tight_layout()
-# plt.savefig('/Users/lizz/Desktop/20201218-map_xcorr_amax.png')
+# plt.savefig('/Users/lizz/Desktop/20210105-map_xcorr_amax.png')
 
 # In[ ]:
 ## Plot spatial pattern of lag at the absolute max xcorr
@@ -331,27 +346,38 @@ fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3, figsize=(14, 4))
 ax1.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=smb_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
-cb1 = fig.colorbar(sc1, ax=ax1)
+## set up correctly scaled colorbar
+div1 = make_axes_locatable(ax1)
+cax1 = div1.append_axes("right", size="5%", pad=0.1)
+plt.colorbar(sc1, cax=cax1)
 # cb1.ax.set_title('Lag [d] at peak xcorr')
 ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment SMB')
+
 # ax2.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
 ax2.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=runoff_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
-cb2 = fig.colorbar(sc2, ax=ax2)
+## set up correctly scaled colorbar
+div2 = make_axes_locatable(ax2)
+cax2 = div2.append_axes("right", size="5%", pad=0.1)
+fig.colorbar(sc2, cax=cax2)
 # cb2.ax.set_title('Lag [d] at peak xcorr')
 ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Catchment runoff')
+
 # ax3.contourf(x_hel, y_hel, b_hel, cmap='gist_earth', alpha=0.5)
 ax3.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc3 = ax3.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=terminus_lag_amax, cmap=div_colors,
                   vmin=lagnorm_min, vmax=lagnorm_max)
-cb3 = fig.colorbar(sc3, ax=ax3)
+## set up correctly scaled colorbar
+div3 = make_axes_locatable(ax3)
+cax3 = div3.append_axes("right", size="5%", pad=0.1)
+cb3 = fig.colorbar(sc3, cax=cax3)
 cb3.ax.set_title('Lag [d] at peak xcorr')
 ax3.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
@@ -359,3 +385,4 @@ ax3.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       xlabel='Easting [km]', ylabel='Northing [km]', title='Terminus position')
 plt.tight_layout()
 plt.show()
+# plt.savefig('/Users/lizz/Desktop/20210105-map_lag_amax.png')
