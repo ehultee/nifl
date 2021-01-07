@@ -51,7 +51,7 @@ ncfile.close()
 
 ## Define points at which to extract
 upstream_max = 500 # index of last xh,yh within given distance of terminus--pts roughly 50m apart
-xys = [(xh[i], yh[i]) for i in range(0, upstream_max, 25)][1::]
+xys = [(xh[i], yh[i]) for i in range(0, upstream_max, 20)][2::]
 
 # ## Import and invert velocity observations
 
