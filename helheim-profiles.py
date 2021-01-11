@@ -15,10 +15,12 @@ sys.path.insert(0, '/Users/lizz/Documents/GitHub/nifl')
 import nifl_helper
 
 
-## Read in network of flowlines
-filename = '/Users/lizz/Documents/GitHub/Data_unsynced/Auto_selected-networks/Gld-autonetwork-GID175-date_2018-10-04.csv'
-flowlines_foranalysis = []
-coords_list = nifl_helper.Flowline_CSV(filename, has_width=True, flip_order=False)
+## Read in flowline for analysis
+flowline_fpath = '/Users/lizz/Documents/GitHub/Data_unsynced/Felikson-flowlines/netcdfs/glaciera199.nc'
+ncfile = Dataset(flowline_fpath, 'r')
+xh = ncfile['flowline05'].variables['x'][:]
+yh = ncfile['flowline05'].variables['y'][:]
+ncfile.close()
 
 
 ## Read in and interpolate BedMachine topography
@@ -46,18 +48,18 @@ S_helheim = interpolate.RectBivariateSpline(x_hel, y_hel[::-1], s_hel.T[::,::-1]
 B_helheim = interpolate.RectBivariateSpline(x_hel, y_hel[::-1], b_hel.T[::,::-1]) #interpolating surface elevation provided
 
 ## Extract along flowlines
-bed_vals = [float(B_helheim(x[0],x[1])) for x in coords_list[0]]
-surface_vals = [float(S_helheim(x[0],x[1])) for x in coords_list[0]]
-xvals = 0.001*np.array(nifl_helper.ArcArray(coords_list[0]))
+xyvals = np.array([(xh[i], yh[i]) for i in range(len(xh))])
+bed_vals = [float(B_helheim(xh[i], yh[i])) for i in range(len(xh))]
+surface_vals = [float(S_helheim(xh[i], yh[i])) for i in range(len(xh))]
+xvals = (0.001*np.array(nifl_helper.ArcArray(xyvals)))-2 # align with flowline that has lower 2km trimmed
 
 ## Plot
-fig, ax = plt.subplots(1)
+fig, ax = plt.subplots(1, figsize=(14, 2))
 ax.plot(xvals, bed_vals, color='saddlebrown')
 ax.plot(xvals, surface_vals, color='darkgrey')
 plt.fill_between(xvals, surface_vals, bed_vals, color='darkgrey', alpha=0.5)
 plt.fill_between(xvals, bed_vals, y2=-1300, color='saddlebrown', alpha=0.5, hatch='/')
-ax.set_xlim(xvals[-1], xvals[0]) #flip x-axis
-ax.set_ylim(-1300, 1900)
-ax.set_aspect(0.01)
+ax.set(xlim=(30, 0), ylim=(-1300, 1500), aspect=0.001, xlabel='Upstream distance [km]', ylabel='Elevation [m a.s.l.]')
+plt.tight_layout()
 plt.show()
 
