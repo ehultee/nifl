@@ -20,18 +20,21 @@ fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 8), sharex=True)
 for i in range(len(xys)):
     # ax1.plot(hel_stack.tdec, series[i], '.')
     ax1.plot(t_grid, preds[i]['full'], label='Point {}'.format(i), color=clrs[i])
-ax1.set(ylabel='Surface speed [km/a]',
+ax1.set(ylabel='Surf. speed [km/a]',
         yticks=(4, 6, 8), xlim=(2009,2017))
-ax2.scatter(smb_d_interp, smb['SMB_int'], label='Int. SMB', color='k') # raw SMB data
-ax2.plot(t_grid_trimmed, smb_func(t_grid_trimmed), color='k', alpha=0.7)
-ax2.legend(loc='upper left')
-ax3.scatter(d_interp, rf[:,2], label='Int. runoff', color='k') # raw runoff data
-ax3.plot(t_grid_trimmed, runoff_func(t_grid_trimmed), color='k', alpha=0.7)
-ax3.legend(loc='upper left')
-ax4.scatter(tm_d_interp, tm['term_km'], label='Term. pos. [km]', color='k') # raw terminus data
+ax2.scatter(smb_d_interp, 0.001*np.array(smb['SMB_int']), color='k') # raw SMB data
+ax2.plot(t_grid_trimmed, 0.001*np.array(smb_func(t_grid_trimmed)), color='k', alpha=0.7)
+ax2.set(ylabel='Int. SMB [m3 w.e.]')
+ax3.scatter(d_interp, 1000*np.array(rf[:,2]), color='k') # raw runoff data
+ax3.plot(t_grid_trimmed, 1000*np.array(runoff_func(t_grid_trimmed)), color='k', alpha=0.7)
+ax3.set(ylabel='Int. runoff [m3 w.e.]')
+ax3.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+ax4.scatter(tm_d_interp, tm['term_km'], color='k') # raw terminus data
 ax4.plot(t_grid_trimmed, termini_func(t_grid_trimmed), color='k', alpha=0.7)
-ax4.legend(loc='upper left')
+ax4.set(ylabel='Term. pos. [km]')
 ax4.set(xlim=(2009,2017), xlabel='Year')
+for ax in (ax1, ax2, ax3, ax4):
+    ax.grid(True, which='major', axis='x', ls=':', color='k', alpha=0.5)
 plt.tight_layout()
 
 
