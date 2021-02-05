@@ -103,17 +103,19 @@ fig, (ax1,ax2) = plt.subplots(1,2, figsize=(10,4))
 rgb = ls.shade(np.asarray(b_hel), cmap=plt.get_cmap('gist_earth'), blend_mode='overlay',
                dx=np.mean(np.diff(x_hel)), dy=np.mean(np.diff(y_hel)), vert_exag=5.)
 ax1.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
-sc = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=term_lt_corr_amax, cmap='RdBu', 
+sc1 = ax1.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=term_lt_corr_amax, cmap='RdBu', 
                  vmin=-0.5, vmax=0.5)
 div1 = make_axes_locatable(ax1)
 cax1 = div1.append_axes("right", size="5%", pad=0.1)
 cb1 = plt.colorbar(sc1, cax=cax1)
 cax1.set_title('Max. xcorr')
+# cax1.set_yticks((-0.5, -0.25, 0, 0.25, 0.5))
+# cax1.set_yticklabels(('-0.5', '-0.25', '0', '0.25', '0.5'))
 ax1.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000), 
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]',
-      title='Low-freq v, term. pos.')
+      title='Low-freq v vs. term. pos.')
 ax2.imshow(rgb, origin='lower', extent=(x_hel[0], x_hel[-1], y_hel[0], y_hel[-1]))
 sc2 = ax2.scatter(np.asarray(xys)[:,0], np.asarray(xys)[:,1], c=term_lt_lag_amax, cmap='RdBu', 
                  vmin=lagnorm_min, vmax=lagnorm_max)
@@ -125,6 +127,6 @@ ax2.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]',
-      title='Low-freq v, term. pos.')
+      title='Low-freq v vs. term. pos.')
 plt.tight_layout()
 plt.show()
