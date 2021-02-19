@@ -373,7 +373,7 @@ def RunoffXcorr(pt, runoff_func, runoff_dates, velocity_pred, t_grid, diff=1, no
     
     return corr, lags, ci
 
-def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff=1, normalize=True):
+def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff=1, normalize=True, pos_only=False):
     """
     Compute cross-correlation on coincident series of a 1D time series
     (e.g. catchment-integrated runoff or SMB) versus velocity at a point.
@@ -400,6 +400,11 @@ def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff
         This makes the output inter-comparable with normalized output for other
         variables.  If set to False, the signal amplitude will be larger but
         the correlation values may exceed 1.
+    pos_only : bool, optional
+    	Whether to analyse only xcorrs with positive lag values.  Default is False.
+    	This allows a bidirectional causal relationship.  For a causal relationship 
+    	hypothesised to be single-directional, choose True to display only positive
+    	lag values.
 
     Returns
     -------
@@ -430,5 +435,10 @@ def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff
     ## convert lags to physical units
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
     
+    if pos_only:
+    	corr = corr[np.argwhere(lags>=0)]
+    	ci = np.asarray(ci)[np.argwhere(lags>=0)]
+    	lags = lags[np.argwhere(lags>=0)]
+    	
     return corr, lags, ci
     
