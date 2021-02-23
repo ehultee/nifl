@@ -9,6 +9,7 @@ import collections
 import datetime
 import numpy as np
 import iceutils as ice
+from iceutils import tseries, timeutils
 
 
 
@@ -436,9 +437,9 @@ def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
     
     if pos_only:
-    	corr = corr[np.argwhere(lags>=0)]
-    	ci = np.asarray(ci)[np.argwhere(lags>=0)]
-    	lags = lags[np.argwhere(lags>=0)]
+    	corr = corr[np.argwhere(lags>=0)].squeeze()
+    	ci = np.asarray(ci)[np.argwhere(lags>=0)].squeeze()
+    	lags = lags[np.argwhere(lags>=0)].squeeze()
     	
     return corr, lags, ci
     
