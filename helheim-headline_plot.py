@@ -22,18 +22,22 @@ t_grid_trimmed = t_grid[np.argwhere(t_grid<2017)] ## valid range for interpolate
 fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 8), sharex=True)
 for i in range(len(xys)):
     # ax1.plot(hel_stack.tdec, series[i], '.')
-    ax1.plot(t_grid, preds[i]['full'], label='Point {}'.format(i), color=clrs[i])
+    ax1.plot(t_grid, preds[i]['full'], label='Point {}'.format(i), color=clrs[i], lw=2.0)
+    # ax1.plot(t_grid, preds[i]['secular']+preds[i]['transient'], color=clrs[i], lw=2.0, alpha=0.3)
 ax1.set(ylabel='Surf. speed [km/a]',
         yticks=(4, 6, 8), xlim=(2009,2017))
-ax2.scatter(smb_d_interp, 0.001*np.array(smb['SMB_int']), color='k') # raw SMB data
-ax2.plot(t_grid_trimmed, 0.001*np.array(smb_func(t_grid_trimmed)), color='k', alpha=0.7)
-ax2.set(ylabel='Int. SMB [m3 w.e.]')
-ax3.scatter(d_interp, 1000*np.array(rf[:,2]), color='k') # raw runoff data
-ax3.plot(t_grid_trimmed, 1000*np.array(runoff_func(t_grid_trimmed)), color='k', alpha=0.7)
-ax3.set(ylabel='Int. runoff [m3 w.e.]')
+ax2.scatter(smb_d_interp, 0.001*np.array(smb['SMB_int']), color='k', alpha=0.5) # raw SMB data
+ax2.plot(t_grid_trimmed, 0.001*np.array(smb_func(t_grid_trimmed)), color='k', lw=2.0)
+ax2.plot(t_grid_trimmed, 1E9*np.array(smb_lowfreq(t_grid_trimmed)), color='k', lw=2.0, alpha=0.3)
+ax2.set(ylabel='Int. SMB [m$^3$ w.e.]')
+ax3.scatter(d_interp, 1000*np.array(rf[:,2]), color='k', alpha=0.5) # raw runoff data
+ax3.plot(t_grid_trimmed, 1000*np.array(runoff_func(t_grid_trimmed)), color='k', lw=2.0)
+ax3.plot(t_grid_trimmed, 1000*np.array(rf_lowfreq(t_grid_trimmed)), color='k', lw=2.0, alpha=0.3)
+ax3.set(ylabel='Int. runoff [m$^3$ w.e.]')
 ax3.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
-ax4.scatter(tm_d_interp, tm['term_km'], color='k') # raw terminus data
-ax4.plot(t_grid_trimmed, termini_func(t_grid_trimmed), color='k', alpha=0.7)
+ax4.scatter(tm_d_interp, tm['term_km'], color='k', alpha=0.5) # raw terminus data
+ax4.plot(t_grid_trimmed, termini_func(t_grid_trimmed), color='k', lw=2.0)
+ax4.plot(t_grid_trimmed, tf_lowfreq(t_grid_trimmed), color='k', lw=2.0, alpha=0.3)
 ax4.set(ylabel='Term. pos. [km]')
 ax4.set(xlim=(2009,2017), xlabel='Year')
 for ax in (ax1, ax2, ax3, ax4):
@@ -48,7 +52,8 @@ for j in highlight_idx:
     pt = xys[j]
     series = hel_stack.timeseries(xy=pt, key=data_key)
     ax.plot(hel_stack.tdec, series, '.', color=clrs[j], alpha=0.5)
-    ax.plot(t_grid, preds[j]['full'], label='Point {}'.format(j), color=clrs[j])
+    ax.plot(t_grid, preds[j]['full'], label='Point {}'.format(j), color=clrs[j], lw=2.0)
+    ax.plot(t_grid, preds[j]['secular']+preds[j]['transient'], color=clrs[j], lw=1.0, alpha=0.5)
 ax.set(xlabel='Year', ylabel='Surface speed [km/a]',
     yticks=(4, 6, 8), xlim=(2009,2017))
 plt.tight_layout()
