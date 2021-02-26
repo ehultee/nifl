@@ -6,6 +6,9 @@ Created on Wed Jan  6 12:08:12 2021
 
 @author: lizz
 """
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 ## Flowline to plot
 # xy_plot = [(xh[i], yh[i]) for i in range(0, upstream_max)]
@@ -66,5 +69,14 @@ ax.set(xlim=(270000, 320000), xticks=(280000, 300000, 320000),
       ylim=(-2590000, -2550000), yticks=(-2590000, -2570000, -2550000), 
        xticklabels=('280', '300', '320'), yticklabels=('-2590', '-2570', '-2550'),
       xlabel='Easting [km]', ylabel='Northing [km]')
+im = ax.imshow(b_hel, cmap=plt.get_cmap('gist_earth'))
+im.remove()
+cbaxes = inset_axes(ax, width="33%", height="4%", loc='lower left', borderpad=1.5)
+cb = plt.colorbar(im, cax=cbaxes, orientation='horizontal')
+cb.set_ticks([-1000,0,2000])
+cb.ax.set_xticklabels(['-1000', '0', '2000 m a.s.l.'])
+cb.ax.xaxis.set_ticks_position('top')
+cb.ax.xaxis.set_label_position('top')
 plt.tight_layout()
 plt.show()
+# plt.savefig('/Users/lizz/Desktop/20210226-helheim_map_with_colorbar')
