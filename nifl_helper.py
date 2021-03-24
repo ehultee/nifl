@@ -320,8 +320,8 @@ def Xcorr1D(pt, series_func, series_dates, velocity_pred, t_grid, t_limits, diff
         vel_diff = (vel_diff-np.mean(vel_diff)) / (np.std(vel_diff))
     corr = np.correlate(series_diff, vel_diff, mode='full')
     lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
-    ci = [2/np.sqrt(len(coincident_series)-abs(k)) for k in lags]
-
+    ci = [1.96/np.sqrt(len(coincident_series)-abs(k)) for k in lags]
+	
     ## convert lags to physical units
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
     
@@ -451,6 +451,7 @@ def Xcorr1D_prewhitened(resid_func, series_dates, velocity_pred, t_grid, t_limit
     
     vel_series_0 = velocity_pred['full'][np.where(t_grid>=t_min)]
     vel_series = vel_series_0[np.where(t_grid[np.where(t_grid>=t_min)]<t_max)] # trim dates to match t_limits
+	
     if normalize:
         vel_series = (vel_series-np.mean(vel_series)) / (np.std(vel_series))
     v_filt = sm.tsa.filters.convolution_filter(vel_series, filt=mod_fit.params)[1:-1]  #trim nans from ends
@@ -459,7 +460,7 @@ def Xcorr1D_prewhitened(resid_func, series_dates, velocity_pred, t_grid, t_limit
         
     corr = np.correlate(coincident_resid[1:-1], v_filt, mode='full')
     lags = range(int(-0.5*len(corr)), int(0.5*len(corr)+1))
-    ci = [2/np.sqrt(len(coincident_resid)-abs(k)) for k in lags]
+    ci = [1.96/np.sqrt(len(coincident_resid)-abs(k)) for k in lags]
 
     ## convert lags to physical units
     lags = np.mean(np.diff(t_grid))*365.26*np.asarray(lags)
