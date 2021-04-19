@@ -170,7 +170,7 @@ trmn = termini.loc[termini.index.year >= 2006]
 tm = trmn.loc[trmn.index.year <2017]
 
 ## smooth to make more comparable with SMB and runoff--but not too much for ARIMA
-td = tm.rolling('30D').mean()
+td = tm.rolling('10D').mean()
 # td1 = td.resample('M').mean()
 
 ##
@@ -192,7 +192,8 @@ for xy, pred in zip(xys, preds):
 
 # In[ ]:
     ## plotting
-    
+ls = LightSource(azdeg=225, altdeg=80)
+
     
 div_colors = 'RdBu' # choose divergent colormap for xcorr
 lag_colors = 'PiYG' # choose divergent colormap for lag
